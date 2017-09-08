@@ -1,6 +1,7 @@
 var express = require('express');
 var request = require("request");
 var objectMapper = require('object-mapper');
+var search = require('../models/search');
 var router = express.Router();
 
 router.get('/', function (req, res, next) {
@@ -41,6 +42,11 @@ router.get('/imagesearch/:searchtext', function (req, res, next) {
         "hits[].pageURL": "[].context",
     };
 
+    search.create({ term: req.params.searchtext }, function (err, doc) {
+        if (err) throw new Error(err);
+        console.log(doc);
+    });
+
     request(options, function (error, response, body) {
         if (error) throw new Error(error);
 
@@ -49,8 +55,14 @@ router.get('/imagesearch/:searchtext', function (req, res, next) {
     });
 });
 
-router.get('/latest', function (req, res, next) {
-    res.send("You have to input a search query");
+router.get('/latest/imagesearch', function (req, res, next) {
+    search.find({}, {
+        __v: false,
+        _id: false
+    }, function (err, doc) {
+        if (err) throw new Error(err);
+        res.json(doc)
+    })
 });
 
 module.exports = router;
